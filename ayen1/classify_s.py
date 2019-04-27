@@ -88,23 +88,22 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
 #    print(inv_cov_arr)
 
     print(te.shape[0])
-    with Bar('Processing',max=10000) as bar:
-        for i,test_sample in enumerate(te): # iterate through test data
-            x_test = test_sample[0:-1].reshape(-1, 1)  # reshape test features to column vector
+    for i,test_sample in enumerate(te): # iterate through test data
+        x_test = test_sample[0:-1].reshape(-1, 1)  # reshape test features to column vector
+        if verbose == 1:
+            print("Sample",i)
 
-            if mpp(x_test, mu, cov, prior, case, cov_av, inv_cov_av, cov_norm_arr, inv_cov_arr) == test_sample[-1]:
-                correct += 1
-                if test_sample[-1]==0:
-                    TN += 1
-                else:
-                    TP += 1
+        if mpp(x_test, mu, cov, prior, case, cov_av, inv_cov_av, cov_norm_arr, inv_cov_arr) == test_sample[-1]:
+            correct += 1
+            if test_sample[-1]==0:
+                TN += 1
             else:
-                if test_sample[-1]==0:
-                    FP += 1
-                else:
-                    FN += 1
-            bar.next()
-    bar.finish()
+                TP += 1
+        else:
+            if test_sample[-1]==0:
+                FP += 1
+            else:
+                FN += 1
 
     # return accuracy depending on if it is a binary classification problem
     if tr.shape[0] > 2:
