@@ -117,8 +117,8 @@ def normalize(tr, te):
     trl = tr[:,-1]
     tel = te[:,-1]
 
-    ntrf = trf
-    ntef = tef
+    ntrf = trf.copy() # need the copy or else it changes tr, te by reference
+    ntef = tef.copy()
     for col in range(trf.shape[1]):
         ntrf[:,col] = (ntrf[:,col]-np.mean(ntrf[:,col]))/np.std(ntrf[:,col])
         ntef[:,col] = (ntef[:,col]-np.mean(ntef[:,col]))/np.std(ntef[:,col])
