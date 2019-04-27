@@ -1,8 +1,10 @@
 import numpy as np
 import time
 from scipy.stats import mode
+from scipy.spatial import distance
 import operator
 import ayen1.preprocessing as pp
+import ayen1.util as util
 
 import keras.losses
 from keras.models import Sequential
@@ -192,7 +194,7 @@ Args:
 Returns:
     accuracy, sensitivity, specificity, TP, TN, FP, FN, execution time
 """
-def knn_accuracy (tr, te, target_k, desired_prior, flag):
+def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=0):
     start_time = time.time()
     TP = 0
     TN = 0
@@ -205,12 +207,12 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag):
         tr_prior = np.array([tr_prior0, 1 - tr_prior0])
         ratio = desired_prior/tr_prior
 
-    for test_sample in te:
-        dist_arr = []
-        for train_sample in tr:
-            distance = util.dist(test_sample[:-1],train_sample[:-1],0) # ignore the class label
-            dist_arr.append(distance)
-        indices = np.argsort(dist_arr)[0:target_k]
+    for i,test_sample in enumerate(te):
+        if verbose == 1:
+            print("Sample",i)
+        test_sample = test_sample.reshape(1,-1) # reshape as 1-row
+        dist_arr = distance.cdist(test_sample[:,:-1],tr[:,:-1]) # find distance
+        indices = np.argsort(dist_arr)[0,0:target_k] # get k indices with largest values
         neighbors = tr[indices]
         labels = neighbors[:,-1]
 
@@ -225,14 +227,14 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag):
             vote = (mode(labels)[0])
 
         # count up accuracy
-        if vote == test_sample[-1]:
+        if vote == test_sample[0,-1]:
             correct += 1
-            if test_sample[-1]==0:
+            if test_sample[0,-1]==0:
                 TN += 1
             else:
                 TP += 1
         else:
-            if test_sample[-1]==0:
+            if test_sample[0,-1]==0:
                 FP += 1
             else:
                 FN += 1

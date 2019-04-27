@@ -77,22 +77,9 @@ Returns:
 def get_params_arr(tr_arr):
     mu = list()
     cov = list()
-    index = 0
-    """
-    for i in tr_arr:  # for each class
-        print(i)
-        mu.append(np.mean(i,axis=0).reshape(-1,1))  # take average by axis
-        cov_tmp = np.zeros((tr_arr[index].shape[1], tr_arr[index].shape[1]))
-        for x in i:
-            x = x.reshape((x.shape[0],1))
-            cov_tmp += (x-mu[index]).dot((x-mu[index]).T)
-        cov.append(np.true_divide(cov_tmp, tr_arr[index].shape[0]))
-        index += 1
-    """
     for i in tr_arr:
         mu.append(np.mean(i,axis=0).reshape(-1,1))  # take average by axis
         cov.append(np.cov(i.T,bias=False))
-
     mu = np.asarray(mu)
     cov = np.asarray(cov)
     return mu,cov
@@ -109,11 +96,7 @@ Returns:
 """
 def get_params(tr):
     mu = np.mean(tr, axis=0).reshape(-1, 1)  # take average by axis
-    cov_tmp = np.zeros((tr.shape[1], tr.shape[1]))
-    for x in tr:
-        x = x.reshape((x.shape[0],1))
-        cov_tmp += (x-mu).dot((x-mu).T)
-    cov = np.true_divide(cov_tmp, tr.shape[0])
+    cov = np.cov(tr.T,bias=False)
     return mu,cov
 
 
@@ -134,16 +117,22 @@ def normalize(tr, te):
     trl = tr[:,-1]
     tel = te[:,-1]
 
-    mu,cov = get_params(tr)
-
     ntrf = trf
-    for x_index, x in enumerate(ntrf):
-        for f_index,feature in enumerate(x):
-            ntrf[x_index,f_index] = (feature - mu[f_index])/np.sqrt(cov[f_index,f_index])
     ntef = tef
-    for x_index, x in enumerate(ntef):
-        for f_index,feature in enumerate(x):
-            ntef[x_index,f_index] = (feature - mu[f_index])/np.sqrt(cov[f_index,f_index])
+    for col in range(trf.shape[1]):
+        ntrf[:,col] = (ntrf[:,col]-np.mean(ntrf[:,col]))/np.std(ntrf[:,col])
+        ntef[:,col] = (ntef[:,col]-np.mean(ntef[:,col]))/np.std(ntef[:,col])
+
+    # mu,cov = get_params(trf)
+    # ntrf = trf
+    # for x_index, x in enumerate(ntrf):
+    #     for f_index,feature in enumerate(x):
+    #         ntrf[x_index,f_index] = (feature - mu[f_index])/np.sqrt(cov[f_index,f_index])
+    # ntef = tef
+    # for x_index, x in enumerate(ntef):
+    #     for f_index,feature in enumerate(x):
+    #         ntef[x_index,f_index] = (feature - mu[f_index])/np.sqrt(cov[f_index,f_index])
+
     ntr = append_column(ntrf,trl)
     nte = append_column(ntef,tel)
     return ntr,nte
@@ -180,9 +169,7 @@ def pca(tr, te, err_thr_or_m, flag):
         max_error = 0
         m = eigenValues.size-1
         while err_exceeded == 0:
-            error = 0
-            for i in range(m,eigenValues.size):
-                error += eigenValues[i]/sum(eigenValues)
+            error = sum(eigenValues[m:]/sum(eigenValues))
             if error > err_thr_or_m:
                 err_exceeded = 1
                 m += 1 # return to the value that was still beneath the threshold
@@ -220,21 +207,27 @@ def fld(tr, te):
     trl = tr[:,-1]
     tel = te[:,-1]
 
-    tr_arr = return_2class_as_array(tr) # split up data into two classes
-    mu = []
-    scatter = []
-    index = 0
-    for i in tr_arr:  # for each class
-        mu.append(np.mean(i,axis=0).reshape(-1,1))  # take average by axis
-        scatter_tmp = np.zeros((tr_arr[index].shape[1], tr_arr[index].shape[1]))
-        for x in i:
-            x = x.reshape((x.shape[0],1))
-            scatter_tmp += (x-mu[index]).dot((x-mu[index]).T)
-        scatter.append(scatter_tmp)
-        index += 1
+    num_classes = np.amax(te[:,-1])+1
+    tr_arr = return_multiclass_as_array(tr,num_classes) # split up data into two classes
+    mu_all, cov_all = get_params(trf) # give to get_params without features
+    mu, cov = get_params_arr(tr_arr)
+    scatter = cov * (te.shape[0]-1)
+
     mu = np.asarray(mu)
     sw = sum(np.asarray(scatter)) # scatter matrix
-    w = np.linalg.inv(sw).dot(mu[0]-mu[1]) # projection vector
+    sb = np.zeros(sw.shape)
+
+    for k in range(num_classes):
+        sb += tr_arr[k].shape[0] * (mu[k]-mu_all).dot((mu[k]-mu_all).T)
+    if scatter.shape[0] <= 2:
+        w = np.linalg.inv(sw).dot(mu[0]-mu[1]) # projection vector
+    else: # more than 2D
+        eigenValues, eigenVectors = np.linalg.eig(np.linalg.pinv(sw).dot(sb))
+        index = eigenValues.argsort()[::-1]
+        eigenValues = eigenValues[index] # sorted from greatest to smallest
+        eigenVectors = eigenVectors[:,index]
+        w = eigenVectors[:,:num_classes-1]
+
 
     ftrf = trf.dot(w)
     ftef = tef.dot(w)

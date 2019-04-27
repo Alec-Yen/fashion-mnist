@@ -1,5 +1,5 @@
 import numpy as np
-import ayen1.util
+import ayen1.util as util
 import itertools
 import time
 
