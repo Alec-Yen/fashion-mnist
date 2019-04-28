@@ -24,6 +24,7 @@ Args:   groups: indexes of groups
             dt - Decision Tree
             nn - 3-Layer Neural Network
         params - vary with classifier
+            case123 - [prior_arr]
             knn - [k, prior_prob, flag]
             dt - none
             nn - [num_classes, hidden_layer_units]
@@ -44,10 +45,17 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
         mask[g] = 0
         tr = data[mask]
         te = data[g]
-        tr,te = pp.normalize(tr,te) # normalize the data
+        #tr,te = pp.normalize(tr,te) # normalize the data
 
 
-        if classifier_name == "knn":
+        if classifier_name == "case1":
+            acc = cls.discriminant_accuracy(tr,te,params[0],1)
+        elif classifier_name == "case2":
+            acc = cls.discriminant_accuracy(tr,te,params[0],2)
+        elif classifier_name == "case3":
+            acc = cls.discriminant_accuracy(tr,te,params[0],3)
+
+        elif classifier_name == "knn":
             acc = cls.knn_accuracy(tr,te,params[0],params[1],params[2])
 
         elif classifier_name == "dt":
@@ -70,7 +78,7 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
         acc_arr = np.append(acc_arr,acc)
 
         if verbose == 1:
-            print("m",i,"correct",acc*te.shape[0],"out of",te.shape[0])
+            print("m",i,"correct",int(acc*te.shape[0]),"out of",te.shape[0])
 
 #    return total_correct/data.shape[0]
     if cm==0:
