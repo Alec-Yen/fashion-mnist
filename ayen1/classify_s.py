@@ -81,13 +81,12 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
     inv_cov_av = np.linalg.pinv(cov_av)
     cov_norm_arr = []
     inv_cov_arr = []
-    for i in range(dims):
+    for i in range(int(dims)):
         cov_norm_arr.append(np.linalg.norm(cov[i]))
         inv_cov_arr.append(np.linalg.pinv(cov[i]))
 #    print(cov_norm_arr)
 #    print(inv_cov_arr)
 
-    print(te.shape[0])
     for i,test_sample in enumerate(te): # iterate through test data
         x_test = test_sample[0:-1].reshape(-1, 1)  # reshape test features to column vector
         if verbose == 1:
@@ -195,7 +194,7 @@ Args:
 Returns:
     accuracy, sensitivity, specificity, TP, TN, FP, FN, execution time
 """
-def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=0):
+def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
     start_time = time.time()
     TP = 0
     TN = 0

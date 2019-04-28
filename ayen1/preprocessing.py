@@ -42,7 +42,7 @@ Returns:
 """
 def return_multiclass_as_array(data,num_classes):
     ret = []
-    for i in range(num_classes):
+    for i in range(int(num_classes)):
         temp = np.where((data[:,-1] == i))
         data_n = data[temp,0:-1] # ignore class label
         data_n = np.reshape(data_n, (data_n.shape[1], data_n.shape[2]))
@@ -187,6 +187,8 @@ def pca(tr, te, err_thr_or_m, flag):
     ptef = tef.dot(P)
     ptr = append_column(ptrf,trl)
     pte = append_column(ptef,tel)
+    ptr[:,-1] = ptr[:,-1].astype(int) # makes 5e00000 5.
+    pte[:,-1] = pte[:,-1].astype(int)
     return ptr, pte, max_error
 
 
@@ -233,5 +235,5 @@ def fld(tr, te):
     ftef = tef.dot(w)
     ftr = append_column(ftrf,trl)
     fte = append_column(ftef,tel)
-    return ftr,fte
+    return np.real(ftr),np.real(fte) # returns imaginary numbers for some reason
 
