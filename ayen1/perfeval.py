@@ -1,6 +1,5 @@
 import numpy as np
 import ayen1.classify_s as cls
-import ayen1.preprocessing as pp
 from sklearn.tree import DecisionTreeClassifier
 
 """

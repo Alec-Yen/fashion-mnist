@@ -1,8 +1,6 @@
 import numpy as np
 from multiprocessing.pool import ThreadPool
-import pandas as pd
 import matplotlib.pyplot as plt
-from tabulate import tabulate
 
 """
 Author: Alec Yen
@@ -99,18 +97,18 @@ groups = np.array(groups)
 
 print("Raw")
 #case_tests(tr,te)
-# k_arr = np.arange(5,21,5)
-# knn_acc_arr = np.zeros(k_arr.shape[0])
-# for i,k in enumerate(k_arr):
-#     knn_acc_arr[i] = knn_threads(tr, te, k, 10)
-#
-# print(knn_acc_arr)
-#
-# plt.plot(k_arr, knn_acc_arr)
-# plt.ylabel("KNN Accuracy")
-# plt.xlabel("k")
-# plt.savefig("latex/figures/knn_acc_arr.png")
-# plt.show()
+k_arr = np.arange(5,251,5)
+knn_acc_arr = np.zeros(k_arr.shape[0])
+for i,k in enumerate(k_arr):
+    knn_acc_arr[i] = knn_threads(tr, te, k, 10)
+
+print(knn_acc_arr)
+
+plt.plot(k_arr, knn_acc_arr)
+plt.ylabel("KNN Accuracy")
+plt.xlabel("k")
+plt.savefig("latex/figures/knn_acc_raw.png")
+plt.show()
 
 
 

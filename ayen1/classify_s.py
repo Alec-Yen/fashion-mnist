@@ -4,7 +4,6 @@ from scipy.stats import mode
 from scipy.spatial import distance
 import operator
 import ayen1.preprocessing as pp
-from progress.bar import Bar
 
 import keras.losses
 from keras.models import Sequential
@@ -346,8 +345,4 @@ def nn_3layer (tr, te, n, outputs,validation_prop):
     return loss_and_metrics[1], history # returns the accuracy
 
 
-#            Z = model.predict(x_test,verbose=False)
-#            Z = np.argmax(Z,axis=1)
-#            print("Network Result\t",Z)
-#            print("Ground Truth\t",te[:,-1].astype(int))
-#            acc = np.sum(Z ==  te[:,-1])/len(Z)
+
