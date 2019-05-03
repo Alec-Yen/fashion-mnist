@@ -14,6 +14,8 @@ from keras import backend as K
 from cedwar45.ConfusionMatrix import ConfusionMatrix
 
 
+np.random.seed(123);
+
 batch_size = 128
 num_classes = 10
 epochs = 30
@@ -95,7 +97,7 @@ predicted = model.predict(X_test,verbose=False)
 predicted = np.argmax(predicted, axis = 1);
 
 
-CM = ConfusionMatrix(predicted, y_test, c);
+CM = ConfusionMatrix(predicted, y_test.astype("int64"), c);
 np.savetxt("data/CNN_predicted_raw.txt", predicted, "%d")
 np.savetxt("data/CNN_cm_raw.txt", CM, "%d");
 

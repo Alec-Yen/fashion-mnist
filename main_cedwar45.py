@@ -50,6 +50,7 @@ fX_train, fX_test = fld(np.hstack((X_train, y_train.reshape(len(y_train), 1))), 
 fX_train = fX_train[:,0:9];
 fX_test = fX_test[:,0:9];
 print("FLD Done")
+
 groups = [];
 m = 10;
 indices = np.random.permutation(np.array(range(0,n)));
@@ -71,9 +72,7 @@ def accuracy(predicted, te_classes):
     
     
 #Decision tree from sklearn
-if True: #skip
-
-        
+if False: #skip
 
     #acc, std = mfold(X_grp, X_classes_grp, skLearn_tree_class);
 
@@ -87,6 +86,22 @@ if True: #skip
     np.savetxt("data/DTree_cm_raw.txt", CM, "%d");
     acc = accuracy(predicted, y_test)
     print("sklearn decision tree test: \t", acc)
+    
+    
+    predicted = skLearn_tree_class(pX_train, pX_test, y_train)
+    CM = ConfusionMatrix(predicted, y_test, c);
+    np.savetxt("data/DTree_predicted_pca.txt", predicted, "%d")
+    np.savetxt("data/DTree_cm_pca.txt", CM, "%d");
+    acc = accuracy(predicted, y_test)
+    print("PCA sklearn decision tree test: \t", acc)
+    
+    
+    predicted = skLearn_tree_class(fX_train, fX_test, y_train)
+    CM = ConfusionMatrix(predicted, y_test, c);
+    np.savetxt("data/DTree_predicted_fld.txt", predicted, "%d")
+    np.savetxt("data/DTree_cm_fld.txt", CM, "%d");
+    acc = accuracy(predicted, y_test)
+    print("FLD sklearn decision tree test: \t", acc)
 
 
 
@@ -146,13 +161,13 @@ if False: #Skip MLP sklearn
 
         #using modified nn_3layer from ayen1
             
-        def nn_3layer (tr_features, te_features, tr_classes):  
+        def nn_3layer (tr_features, te_features, tr_classes, dim = d):  
             x_train = tr_features
             y_train = keras.utils.to_categorical(tr_classes, num_classes=c) # one hot
             x_test = te_features
 
             model = Sequential()
-            model.add(Dense(d, input_dim=d, activation='relu')) 
+            model.add(Dense(d, input_dim=dim, activation='relu')) 
             model.add(Dense(h, activation='relu'))
             model.add(Dense(c, activation='softmax')) 
             model.compile(loss='categorical_crossentropy',
@@ -164,7 +179,7 @@ if False: #Skip MLP sklearn
                               patience=2,
                               verbose=0, mode='auto')
                           
-            history = model.fit(x_train, y_train, epochs=100, batch_size=128,verbose=0,
+            history = model.fit(x_train, y_train, epochs=100, batch_size=128,verbose=True,
                 callbacks = [cb],
                 #validation_data=(x_test, keras.utils.to_categorical(y_test, num_classes=c))
                 validation_split = .1
@@ -187,7 +202,7 @@ if False: #Skip MLP sklearn
             
             return predicted;
             
-            
+        
         acc, std = mfold(X_grp, X_classes_grp, nn_3layer);
         
         accs = np.append(accs, acc);
@@ -196,8 +211,36 @@ if False: #Skip MLP sklearn
         print("sklearn Multilayer Perceptron 10-fold: ", h," \t", acc)
         
         
+        
+        #Test version
+        predicted = nn_3layer(X_train, X_test, y_train)
+        CM = ConfusionMatrix(predicted, y_test, c);
+        np.savetxt("data/k3NN_predicted_raw.txt", predicted, "%d")
+        np.savetxt("data/k3NN_cm_raw.txt", CM, "%d");
+        acc = accuracy(predicted, y_test)
+        print("sklearn keras 3-layer NN test: \t", acc)
+        
+        
+        predicted = nn_3layer(pX_train, pX_test, y_train, pX_train.shape[1])
+        CM = ConfusionMatrix(predicted, y_test, c);
+        np.savetxt("data/k3NN_predicted_pca.txt", predicted, "%d")
+        np.savetxt("data/k3NN_cm_pca.txt", CM, "%d");
+        acc = accuracy(predicted, y_test)
+        print("PCA keras 3-layer NN test: \t", acc)
+        
+        
+        predicted = nn_3layer(fX_train, fX_test, y_train, fX_train.shape[1])
+        CM = ConfusionMatrix(predicted, y_test, c);
+        np.savetxt("data/k3NN_predicted_fld.txt", predicted, "%d")
+        np.savetxt("data/k3NN_cm_fld.txt", CM, "%d");
+        acc = accuracy(predicted, y_test)
+        print("FLD keras 3-layer NN test: \t", acc)
+        
+        
+        
+        
 
-    plt.errorbar(list(range(2,15+1)), accs*100, stds*100, linestyle='None', marker='o')
-    plt.xlabel('Hidden Nodes')
-    plt.ylabel('Accuracy')
-    plt.show()
+    #plt.errorbar(list(range(2,15+1)), accs*100, stds*100, linestyle='None', marker='o')
+    #plt.xlabel('Hidden Nodes')
+    #plt.ylabel('Accuracy')
+    #plt.show()
