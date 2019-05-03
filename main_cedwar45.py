@@ -154,10 +154,10 @@ if False: #Skip MLP sklearn
 np.random.seed(321)
 
 #3 layer NN from Keras 
-if False: #Skip MLP sklearn
+if True: #Skip MLP sklearn
     accs = np.array([]);
     stds = np.array([]);
-    for h in [8]:#range(2,15+1):
+    for h in [5,10,15]:#range(2,15+1):
 
         #using modified nn_3layer from ayen1
             
@@ -202,39 +202,39 @@ if False: #Skip MLP sklearn
             
             return predicted;
             
-        
+        '''
         acc, std = mfold(X_grp, X_classes_grp, nn_3layer);
         
         accs = np.append(accs, acc);
         stds = np.append(stds, std);
         
         print("sklearn Multilayer Perceptron 10-fold: ", h," \t", acc)
-        
+        '''
         
         
         #Test version
         predicted = nn_3layer(X_train, X_test, y_train)
         CM = ConfusionMatrix(predicted, y_test, c);
-        np.savetxt("data/k3NN_predicted_raw.txt", predicted, "%d")
-        np.savetxt("data/k3NN_cm_raw.txt", CM, "%d");
+        np.savetxt("data/k3NN_h"+str(h)+"_predicted_raw.txt", predicted, "%d")
+        np.savetxt("data/k3NN_h"+str(h)+"_cm_raw.txt", CM, "%d");
         acc = accuracy(predicted, y_test)
-        print("sklearn keras 3-layer NN test: \t", acc)
+        print("sklearn keras 3-layer NN test: ", h," \t", acc)
         
         
         predicted = nn_3layer(pX_train, pX_test, y_train, pX_train.shape[1])
         CM = ConfusionMatrix(predicted, y_test, c);
-        np.savetxt("data/k3NN_predicted_pca.txt", predicted, "%d")
-        np.savetxt("data/k3NN_cm_pca.txt", CM, "%d");
+        np.savetxt("data/k3NN_h"+str(h)+"_predicted_pca.txt", predicted, "%d")
+        np.savetxt("data/k3NN_h"+str(h)+"_cm_pca.txt", CM, "%d");
         acc = accuracy(predicted, y_test)
-        print("PCA keras 3-layer NN test: \t", acc)
+        print("PCA keras 3-layer NN test: ", h," \t", acc)
         
         
         predicted = nn_3layer(fX_train, fX_test, y_train, fX_train.shape[1])
         CM = ConfusionMatrix(predicted, y_test, c);
-        np.savetxt("data/k3NN_predicted_fld.txt", predicted, "%d")
-        np.savetxt("data/k3NN_cm_fld.txt", CM, "%d");
+        np.savetxt("data/k3NN_h"+str(h)+"_predicted_fld.txt", predicted, "%d")
+        np.savetxt("data/k3NN_h"+str(h)+"_cm_fld.txt", CM, "%d");
         acc = accuracy(predicted, y_test)
-        print("FLD keras 3-layer NN test: \t", acc)
+        print("FLD keras 3-layer NN test: ", h," \t", acc)
         
         
         

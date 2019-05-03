@@ -1,6 +1,7 @@
 
 from cedwar45.PCA import PCA, PCA_k
 from cedwar45.kMeans import kMeans
+from cedwar45.WTA import WTA
 import numpy as np
 import matplotlib.pyplot as plt
 import zalando.utils.mnist_reader as mnist_reader
@@ -41,29 +42,46 @@ d = X_train.shape[1];
 
 pX_train, pX_test = PCA_k(X_train, X_test, 2);
 
-idx=random.sample(range(n),1000)
+#idx=random.sample(range(n),1000)
 
 plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = y_train);
-plt.title("Original Label")
+plt.title("Original Label Clusters")
 #plt.show()
 
 #Use k-means on PCA
-km_X, winners, km_MD = kMeans(pX_train, k=c, d=2, seed=123);
+km_X, km_winners, km_MD = kMeans(pX_train, k=c, seed=123);
 
 plt.figure()
-plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = winners);
-plt.title("k-means Clusters on PCA")
+plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = km_winners);
+plt.title("k-means Clusters from PCA")
 #plt.show()
 
 
-#Use k-means on PCA
-km_X, winners, km_MD = kMeans(X_train, k=c, d=X_train.shape[1], seed=123);
+#Use k-means on raw
+km_X, km_winners, km_MD = kMeans(X_train, k=c, seed=123);
 
 plt.figure()
-plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = winners);
-plt.title("k-means Clusters on normalized")
+plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = km_winners);
+plt.title("k-means Clusters from normalized")
+#plt.show()
+
+
+#Use WTA on PCA
+WTA_X, WTA_winners, WTA_MD = WTA(pX_train, k=c, epsilon = .01, stop = 100, seed = 123)
+
+plt.figure()
+plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = WTA_winners);
+plt.title("WTA Clusters from PCA")
+#plt.show()
+
+
+#Use WTA on raw
+WTA_X, WTA_winners, WTA_MD = WTA(X_train, k=c, epsilon = .01, stop = 100, seed = 123)
+
+plt.figure()
+plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = WTA_winners);
+plt.title("WTA Clusters from normalized")
 plt.show()
-
 
 
 

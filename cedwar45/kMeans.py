@@ -10,13 +10,15 @@ def euc_dist(x,y):
 
 
 
-def kMeans(X, k, d, seed = None):
+def kMeans(X, k, seed = None):
 
     np.random.seed(seed)
     
     X_unique, unique_index = np.unique(X, return_index=True, axis=0)
     r_index = np.random.choice(unique_index, k, replace = False);
     clusters = X[r_index].astype(float);
+    
+    d = X.shape[1];
     
     #clusters = X[cluster_index].copy();
     
