@@ -74,7 +74,9 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
     FP = 0
     FN = 0
     correct = 0
-    dims = np.max(tr[:,-1])+1
+    dims = int(np.max(tr[:,-1])+1)
+
+    # set up to improve speed
     mu,cov = pp.get_params_arr(pp.return_multiclass_as_array(tr,dims)) # get parameters from training data
     cov_av = np.mean(cov,axis=0)
     inv_cov_av = np.linalg.pinv(cov_av)
@@ -83,15 +85,19 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
     for i in range(int(dims)):
         cov_norm_arr.append(np.linalg.norm(cov[i]))
         inv_cov_arr.append(np.linalg.pinv(cov[i]))
-#    print(cov_norm_arr)
-#    print(inv_cov_arr)
+
+    # set up confusion matrix, where rows are the true labels and columns are the classifier labels
+    confusion_matrix = np.zeros((dims,dims))
 
     for i,test_sample in enumerate(te): # iterate through test data
         x_test = test_sample[0:-1].reshape(-1, 1)  # reshape test features to column vector
         if verbose == 1:
             print("Sample",i)
 
-        if mpp(x_test, mu, cov, prior, case, cov_av, inv_cov_av, cov_norm_arr, inv_cov_arr) == test_sample[-1]:
+        classifier_answer = mpp(x_test, mu, cov, prior, case, cov_av, inv_cov_av, cov_norm_arr, inv_cov_arr)
+        confusion_matrix[int(test_sample[-1]),int(classifier_answer)] += 1
+
+        if classifier_answer == test_sample[-1]:
             correct += 1
             if test_sample[-1]==0:
                 TN += 1
@@ -105,7 +111,7 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
 
     # return accuracy depending on if it is a binary classification problem
     if tr.shape[0] > 2:
-        return correct/te.shape[0]
+        return correct/te.shape[0], confusion_matrix
     else:
         return (TN+TP)/te.shape[0], TP/(TP+FN), TN/(TN+FP), TP, TN, FP, FN
 
@@ -200,6 +206,10 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
     FP = 0
     FN = 0
     correct = 0
+    dims = int(np.max(tr[:,-1])+1)
+
+    # set up confusion matrix, where rows are the true labels and columns are the classifier labels
+    confusion_matrix = np.zeros((dims,dims))
 
     if flag==1:
         tr_prior0 = pp.return_2class_as_array(tr)[0].shape[0] / tr.shape[0]
@@ -226,6 +236,7 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
             vote = (mode(labels)[0])
 
         # count up accuracy
+        confusion_matrix[int(test_sample[0,-1]),int(vote)] += 1
         if vote == test_sample[0,-1]:
             correct += 1
             if test_sample[0,-1]==0:
@@ -241,7 +252,7 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
 
     # return depending on if it's binary or not
     if tr.shape[0] > 2:
-        return correct/te.shape[0]
+        return correct/te.shape[0], confusion_matrix
     else:
         return (TN+TP)/te.shape[0], TP/(TP+FN), TN/(TN+FP), TP, TN, FP, FN, execution_time
 

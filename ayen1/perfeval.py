@@ -31,14 +31,14 @@ Args:   groups: indexes of groups
 Returns:
 """
 
-def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbose=1,cm=0):
+def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbose=1,cm_flag=0):
     # TODO: make groups an optional parameter
     np.random.seed(0)
 
     total_correct = 0
     total_accuracy = 0
     acc_arr = []
-    confusion_matrix = np.zeros((group_indices.shape[0]))
+    accuracies_matrix = np.zeros((group_indices.shape[0]))
     for i,g in enumerate(group_indices):
         mask = np.ones(data.shape[0],dtype=bool)
         mask[g] = 0
@@ -48,14 +48,14 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
 
 
         if classifier_name == "case1":
-            acc = cls.discriminant_accuracy(tr,te,params[0],1)
+            acc,cm = cls.discriminant_accuracy(tr,te,params[0],1)
         elif classifier_name == "case2":
-            acc = cls.discriminant_accuracy(tr,te,params[0],2)
+            acc,cm = cls.discriminant_accuracy(tr,te,params[0],2)
         elif classifier_name == "case3":
-            acc = cls.discriminant_accuracy(tr,te,params[0],3)
+            acc,cm = cls.discriminant_accuracy(tr,te,params[0],3)
 
         elif classifier_name == "knn":
-            acc = cls.knn_accuracy(tr,te,params[0],params[1],params[2])
+            acc,cm = cls.knn_accuracy(tr,te,params[0],params[1],params[2])
 
         elif classifier_name == "dt":
             clf = DecisionTreeClassifier().fit(tr[:,:-1],tr[:,-1])
@@ -72,7 +72,7 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
         #        print("test",te.shape)
         total_correct += acc * te.shape[0]
         total_accuracy += acc
-        confusion_matrix[i] = acc
+        accuracies_matrix[i] = acc
 
         acc_arr = np.append(acc_arr,acc)
 
@@ -80,9 +80,9 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
             print("m",i,"correct",int(acc*te.shape[0]),"out of",te.shape[0])
 
 #    return total_correct/data.shape[0]
-    if cm==0:
+    if cm_flag==0:
         return total_accuracy/group_indices.shape[0], np.std(acc_arr)
     else:
-        return total_accuracy/group_indices.shape[0], np.std(acc_arr), confusion_matrix
+        return total_accuracy/group_indices.shape[0], np.std(acc_arr), accuracies_matrix
 
 
