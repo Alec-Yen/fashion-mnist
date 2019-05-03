@@ -57,6 +57,7 @@ print(X_test.shape[0], 'test samples')
 
 # convert class vectors to binary class matrices
 y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test_orig = y_test
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
@@ -97,7 +98,7 @@ predicted = model.predict(X_test,verbose=False)
 predicted = np.argmax(predicted, axis = 1);
 
 
-CM = ConfusionMatrix(predicted, y_test.astype("int64"), c);
+CM = ConfusionMatrix(predicted, y_test_orig, c);
 np.savetxt("data/CNN_predicted_raw.txt", predicted, "%d")
 np.savetxt("data/CNN_cm_raw.txt", CM, "%d");
 
