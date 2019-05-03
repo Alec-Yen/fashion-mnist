@@ -3,10 +3,18 @@
 
 
 from __future__ import print_function
-from keras.datasets import mnist
 from cedwar45.mfold import mfold
 import numpy as np
+import matplotlib.pyplot as plt
 import zalando.utils.mnist_reader as mnist_reader
+from cedwar45.DTree import skLearn_tree_class
+from cedwar45.PCA import PCA, PCA_k
+from cedwar45.ConfusionMatrix import ConfusionMatrix
+
+from keras.datasets import mnist
+import keras.losses
+from keras.models import Sequential
+from keras.layers import Dense
 
 
 np.random.seed(321);
@@ -22,6 +30,7 @@ else: #use regular MNIST
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
 
+c = 10; #10 classes
 
 X_train = X_train.astype('float32')
 X_test = X_test.astype('float32')
@@ -32,6 +41,9 @@ print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
 
 n = X_train.shape[0];
+d = X_train.shape[1];
+
+pX_train, pX_test = PCA(X_train, X_test, .1);
 
 groups = [];
 m = 10;
@@ -52,31 +64,135 @@ def accuracy(predicted, te_classes):
     return rv
     
     
+    
 #Decision tree from sklearn
-from sklearn import tree
+if True: #skip
 
-#Test version
+        
 
-clf = tree.DecisionTreeClassifier();
+    #acc, std = mfold(X_grp, X_classes_grp, skLearn_tree_class);
 
-clf.fit(X_train, y_train)  
-predicted = clf.predict(X_test);
-acc = accuracy(predicted, y_test);
-print("sklearn decision tree test: \t", acc)
-
-#M-fold
-def skLearn_tree_class(tr_features, te_features, tr_classes):
-
-    clf = tree.DecisionTreeClassifier();
+    #print("sklearn decision tree 10-fold: \t", acc)
     
-    clf.fit(tr_features, tr_classes)  
-    predicted = clf.predict(te_features);
-    return predicted;
     
+    #Test version
+    predicted = skLearn_tree_class(X_train, X_test, y_train)
+    CM = ConfusionMatrix(predicted, y_test, c);
+    np.savetxt("data/DTree_predicted_raw.txt", predicted)
+    np.savetxt("data/DTree_cm_raw.txt", CM);
+    acc = accuracy(predicted, y_test)
+    print("sklearn decision tree test: \t", acc)
 
-acc = mfold(X_grp, X_classes_grp, skLearn_tree_class);
-
-print("sklearn decision tree 10-fold: \t", acc)
 
 
+np.random.seed(321)
 
+#Multilayer Perceptron from sklearn
+if False: #Skip MLP sklearn
+    accs = np.array([]);
+    stds = np.array([]);
+    for h in [8]:#range(2,15+1):
+        from sklearn.neural_network import MLPClassifier
+
+        def skLearn_MLPClassifier(tr_features, te_features, tr_classes):
+
+            #mlp = MLPClassifier(hidden_layer_sizes=(8), validation_fraction = 1/9, early_stopping=True, n_iter_no_change=5000, max_iter = 15000) 
+            mlp = MLPClassifier(hidden_layer_sizes=(h), max_iter = 10000) 
+
+            
+            mlp.fit(tr_features, tr_classes)  
+            predicted = mlp.predict(te_features);
+            
+            
+            #plt.plot(np.array(range(len(mlp.loss_curve_)))/len(tr_classes), mlp.loss_curve_);
+            #plt.xlabel("Epoch");
+            #plt.ylabel("Loss");
+            #plt.show();
+            
+            print("Done")
+            
+            return predicted;
+            
+            
+        acc, std = mfold(X_grp, X_classes_grp, skLearn_MLPClassifier);
+        
+        accs = np.append(accs, acc);
+        stds = np.append(stds, std);
+        
+        
+        print("sklearn Multilayer Perceptron: ", h," \t", acc)
+        
+        
+
+    plt.errorbar(list(range(2,15+1)), accs*100, stds*100, linestyle='None', marker='o')
+    plt.xlabel('Hidden Nodes')
+    plt.ylabel('Accuracy')
+    plt.show()
+    
+    
+    
+np.random.seed(321)
+
+#3 layer NN from Keras 
+if False: #Skip MLP sklearn
+    accs = np.array([]);
+    stds = np.array([]);
+    for h in [8]:#range(2,15+1):
+
+        #using modified nn_3layer from ayen1
+            
+        def nn_3layer (tr_features, te_features, tr_classes):  
+            x_train = tr_features
+            y_train = keras.utils.to_categorical(tr_classes, num_classes=c) # one hot
+            x_test = te_features
+
+            model = Sequential()
+            model.add(Dense(d, input_dim=d, activation='relu')) 
+            model.add(Dense(h, activation='relu'))
+            model.add(Dense(c, activation='softmax')) 
+            model.compile(loss='categorical_crossentropy',
+                          optimizer='sgd',
+                          metrics=['accuracy'])
+                          
+            cb = keras.callbacks.EarlyStopping(monitor='val_loss',
+                              min_delta=0,
+                              patience=2,
+                              verbose=0, mode='auto')
+                          
+            history = model.fit(x_train, y_train, epochs=100, batch_size=128,verbose=0,
+                callbacks = [cb],
+                #validation_data=(x_test, keras.utils.to_categorical(y_test, num_classes=c))
+                validation_split = .1
+                )
+            #loss_and_metrics = model.evaluate(x_test,y_test,batch_size=128,verbose=False)
+
+            #return loss_and_metrics[1], history # returns the accuracy
+            
+            
+            predicted = model.predict(x_test,batch_size=128,verbose=False)
+            predicted = np.argmax(predicted, axis = 1);
+            #print(predicted.shape)
+            
+            
+            #plt.plot(np.array(range(len(mlp.loss_curve_)))/len(tr_classes), mlp.loss_curve_);
+            #plt.xlabel("Epoch");
+            #plt.ylabel("Loss");
+            #plt.show();
+            
+            
+            return predicted;
+            
+            
+        acc, std = mfold(X_grp, X_classes_grp, nn_3layer);
+        
+        accs = np.append(accs, acc);
+        stds = np.append(stds, std);
+        
+        print("sklearn Multilayer Perceptron 10-fold: ", h," \t", acc)
+        
+        
+
+    plt.errorbar(list(range(2,15+1)), accs*100, stds*100, linestyle='None', marker='o')
+    plt.xlabel('Hidden Nodes')
+    plt.ylabel('Accuracy')
+    plt.show()

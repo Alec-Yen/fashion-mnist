@@ -46,7 +46,9 @@ def mfold(X_grp, X_classes, classifier):
         
         
         #print(X_tr.shape, X_tr_classes.shape, X_te.shape)
+        
         predicted = classifier(X_tr, X_te, X_tr_classes);
+        #print(predicted.shape)
         acc = accuracy(predicted, X_te_classes);
         accs.append(acc);
         print(acc)
