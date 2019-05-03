@@ -11,11 +11,13 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
+from cedwar45.ConfusionMatrix import ConfusionMatrix
 
 
 batch_size = 128
 num_classes = 10
 epochs = 30
+
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -32,7 +34,7 @@ if fashion:
 else: #use regular MNIST
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
-
+c = 10
 
 if K.image_data_format() == 'channels_first':
     X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
@@ -88,3 +90,15 @@ model.fit(X_train, y_train,
 score = model.evaluate(X_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+predicted = model.predict(X_test,verbose=False)
+predicted = np.argmax(predicted, axis = 1);
+
+
+CM = ConfusionMatrix(predicted, y_test, c);
+np.savetxt("data/CNN_predicted_raw.txt", predicted, "%d")
+np.savetxt("data/CNN_cm_raw.txt", CM, "%d");
+
+
+
+

@@ -10,6 +10,7 @@ import zalando.utils.mnist_reader as mnist_reader
 from cedwar45.DTree import skLearn_tree_class
 from cedwar45.PCA import PCA, PCA_k
 from cedwar45.ConfusionMatrix import ConfusionMatrix
+from ayen1.preprocessing import fld
 
 from keras.datasets import mnist
 import keras.losses
@@ -44,7 +45,11 @@ n = X_train.shape[0];
 d = X_train.shape[1];
 
 pX_train, pX_test = PCA(X_train, X_test, .1);
-
+print("PCA Done")
+fX_train, fX_test = fld(np.hstack((X_train, y_train.reshape(len(y_train), 1))), np.hstack((X_test, y_test.reshape(len(y_test), 1))));
+fX_train = fX_train[:,0:9];
+fX_test = fX_test[:,0:9];
+print("FLD Done")
 groups = [];
 m = 10;
 indices = np.random.permutation(np.array(range(0,n)));
@@ -78,8 +83,8 @@ if True: #skip
     #Test version
     predicted = skLearn_tree_class(X_train, X_test, y_train)
     CM = ConfusionMatrix(predicted, y_test, c);
-    np.savetxt("data/DTree_predicted_raw.txt", predicted)
-    np.savetxt("data/DTree_cm_raw.txt", CM);
+    np.savetxt("data/DTree_predicted_raw.txt", predicted, "%d")
+    np.savetxt("data/DTree_cm_raw.txt", CM, "%d");
     acc = accuracy(predicted, y_test)
     print("sklearn decision tree test: \t", acc)
 
