@@ -55,6 +55,7 @@ def mpp(x, mu, cov, prior, case, cov_av, inv_cov_av, cov_norm_arr, inv_cov_arr):
     return np.argmax(g)  # return index with max value
 
 
+
 """
 Purpose:
     Discriminant classifier, supervised learning
@@ -75,6 +76,7 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
     FN = 0
     correct = 0
     dims = int(np.max(tr[:,-1])+1)
+    predicted_labels = np.zeros(te.shape[0])
 
     # set up to improve speed
     mu,cov = pp.get_params_arr(pp.return_multiclass_as_array(tr,dims)) # get parameters from training data
@@ -96,6 +98,7 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
 
         classifier_answer = mpp(x_test, mu, cov, prior, case, cov_av, inv_cov_av, cov_norm_arr, inv_cov_arr)
         confusion_matrix[int(test_sample[-1]),int(classifier_answer)] += 1
+        predicted_labels[i] = classifier_answer
 
         if classifier_answer == test_sample[-1]:
             correct += 1
@@ -111,7 +114,7 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
 
     # return accuracy depending on if it is a binary classification problem
     if tr.shape[0] > 2:
-        return correct/te.shape[0], confusion_matrix
+        return correct/te.shape[0], confusion_matrix, predicted_labels
     else:
         return (TN+TP)/te.shape[0], TP/(TP+FN), TN/(TN+FP), TP, TN, FP, FN
 
@@ -199,7 +202,7 @@ Args:
 Returns:
     accuracy, sensitivity, specificity, TP, TN, FP, FN, execution time
 """
-def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
+def knn_accuracy (tr, te, target_k, desired_prior, flag, distance_flag, verbose=1):
     start_time = time.time()
     TP = 0
     TN = 0
@@ -207,6 +210,7 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
     FN = 0
     correct = 0
     dims = int(np.max(tr[:,-1])+1)
+    predicted_labels = np.zeros(te.shape[0])
 
     # set up confusion matrix, where rows are the true labels and columns are the classifier labels
     confusion_matrix = np.zeros((dims,dims))
@@ -220,7 +224,7 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
         if verbose == 1:
             print("Sample",i)
         test_sample = test_sample.reshape(1,-1) # reshape as 1-row
-        dist_arr = distance.cdist(test_sample[:,:-1],tr[:,:-1]) # find distance
+        dist_arr = distance.cdist(test_sample[:,:-1],tr[:,:-1],'minkowski',p=distance_flag) # find distance
         indices = np.argsort(dist_arr)[0,0:target_k] # get k indices with largest values
         neighbors = tr[indices]
         labels = neighbors[:,-1]
@@ -237,6 +241,7 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
 
         # count up accuracy
         confusion_matrix[int(test_sample[0,-1]),int(vote)] += 1
+        predicted_labels[i] = vote
         if vote == test_sample[0,-1]:
             correct += 1
             if test_sample[0,-1]==0:
@@ -252,7 +257,7 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, verbose=1):
 
     # return depending on if it's binary or not
     if tr.shape[0] > 2:
-        return correct/te.shape[0], confusion_matrix
+        return correct/te.shape[0], confusion_matrix, predicted_labels
     else:
         return (TN+TP)/te.shape[0], TP/(TP+FN), TN/(TN+FP), TP, TN, FP, FN, execution_time
 

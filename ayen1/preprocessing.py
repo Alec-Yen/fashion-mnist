@@ -209,7 +209,7 @@ def fld(tr, te):
     trl = tr[:,-1]
     tel = te[:,-1]
 
-    num_classes = np.amax(te[:,-1])+1
+    num_classes = int(np.amax(te[:,-1])+1)
     tr_arr = return_multiclass_as_array(tr,num_classes) # split up data into two classes
     mu_all, cov_all = get_params(trf) # give to get_params without features
     mu, cov = get_params_arr(tr_arr)

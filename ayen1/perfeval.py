@@ -1,6 +1,7 @@
 import numpy as np
 import ayen1.classify_s as cls
 from sklearn.tree import DecisionTreeClassifier
+import itertools
 
 """
 Author: Alec Yen
@@ -85,4 +86,42 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
     else:
         return total_accuracy/group_indices.shape[0], np.std(acc_arr), accuracies_matrix
 
+
+def naive_bayesian (tr, te, cm_array):
+    label_array = []
+    num_classifiers = len(cm_array)
+    dims = int(np.max(tr[:,-1])+1)
+    for cm in cm_array:
+        cm = cm.astype("float32")/cm.sum(axis=1)[:,None]
+        label_array.append(cm)
+    indexes = list(itertools.product(range(dims),repeat=num_classifiers))
+
+    lookup_table = np.zeros((dims,pow(dims,num_classifiers)))
+    for i,comb in enumerate(indexes):
+        product = label_array[0][:,comb[0]] # initalize the product
+        for j in range(1,num_classifiers):
+            product = product * label_array[j][:,comb[j]]
+        lookup_table[:,i] = product.T
+
+    np.set_printoptions(suppress=True)
+    return lookup_table
+
+
+def fusion (tr, te, cm_array, predicted_array):
+    correct = 0
+    lookup_table = naive_bayesian(tr,te,cm_array)
+    num_classifiers = len(cm_array)
+    dims = int(np.max(tr[:,-1])+1)
+    indexes = list(itertools.product(range(dims),repeat=num_classifiers))
+
+    for test_index, test_sample in enumerate(te):
+        votes = np.zeros(num_classifiers)
+        for i, predicted in enumerate(predicted_array):
+            votes[i] = predicted_array[i][test_index]
+        column_index = indexes.index(tuple(votes))
+        final_vote = np.argmax(lookup_table[:,column_index])
+        if final_vote == test_sample[-1]:
+            correct += 1
+
+    print(correct)
 

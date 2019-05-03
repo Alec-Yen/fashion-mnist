@@ -65,3 +65,6 @@ def plot_curves (x, curves, title, xlabel, ylabel, legend, flag):
 
     fig.show()
 
+def writeToFile (filename, num, decimals):
+    with open(filename, 'w') as output:
+        output.write(str(round(num,decimals)))
