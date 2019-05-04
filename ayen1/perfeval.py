@@ -114,6 +114,7 @@ def fusion (tr, te, cm_array, predicted_array):
     dims = int(np.max(tr[:,-1])+1)
     indexes = list(itertools.product(range(dims),repeat=num_classifiers))
     confusion_matrix = np.zeros((dims,dims))
+    predicted = np.zeros(te.shape[0])
 
     for test_index, test_sample in enumerate(te):
         print("Sample",test_index)
@@ -124,8 +125,9 @@ def fusion (tr, te, cm_array, predicted_array):
         final_vote = np.argmax(lookup_table[:,column_index])
 
         confusion_matrix[int(test_sample[-1]),final_vote] += 1
+        predicted[test_index] = final_vote
         if final_vote == test_sample[-1]:
             correct += 1
 
-    return correct/te.shape[0], confusion_matrix
+    return correct/te.shape[0], confusion_matrix, predicted
 
