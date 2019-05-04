@@ -73,7 +73,6 @@ te = np.hstack((X_test.astype("float32")/255,y_test))
 
 #######################PREPROCESSING##################################
 
-
 ptr, pte, perr = pp.pca(tr,te,0.1,0)
 ftr, fte = pp.fld(tr,te)
 
@@ -96,6 +95,11 @@ print("Raw")
 # np.savetxt('data/case2_predicted_raw.txt',case2predicted,fmt='%d')
 # np.savetxt('data/case3_predicted_raw.txt',case3predicted,fmt='%d')
 
+# knn_acc, knn_cm, knn_predicted = knn_threads(tr,te,k,num_threads,p)
+# util.writeToFile('data/knn_acc_raw_k'+str(k)+'_p'+str(p)+'.txt',knn_acc,3)
+# np.savetxt('data/knn_cm_raw_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
+# np.savetxt('data/knn_predicted_raw_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
+
 print("PCA")
 # case1acc, case1cm, case1predicted, case2acc, case2cm, case2predicted, case3acc, case3cm, case3predicted = case_tests(ptr,pte)
 # util.writeToFile('data/case1_acc_pca.txt',case1acc,3)
@@ -109,7 +113,7 @@ print("PCA")
 # np.savetxt('data/case3_predicted_pca.txt',case3predicted,fmt='%d')
 
 # knn_acc, knn_cm, knn_predicted = knn_threads(ptr,pte,k,num_threads,p)
-# util.writeToFile('data/knn_acc_pca'+str(k)+'_p'+str(p)+'.txt',knn_acc,3)
+# util.writeToFile('data/knn_acc_pca_k'+str(k)+'_p'+str(p)+'.txt',knn_acc,3)
 # np.savetxt('data/knn_cm_pca_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
 # np.savetxt('data/knn_predicted_pca_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
 
@@ -126,10 +130,10 @@ print("FLD")
 # np.savetxt('data/case3_predicted_fld.txt',case3predicted,fmt='%d')
 #
 
-knn_acc, knn_cm, knn_predicted = knn_threads(ftr,fte,k,num_threads,p)
-util.writeToFile('data/knn_acc_pca'+str(k)+'_p'+str(p)+'.txt',knn_acc,3)
-np.savetxt('data/knn_cm_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
-np.savetxt('data/knn_predicted_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
+# knn_acc, knn_cm, knn_predicted = knn_threads(ftr,fte,k,num_threads,p)
+# util.writeToFile('data/knn_acc_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_acc,3)
+# np.savetxt('data/knn_cm_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
+# np.savetxt('data/knn_predicted_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
 
 
 
@@ -162,21 +166,82 @@ for i in range(0,m):
     groups.append(indexes[i*per_group:(i+1)*per_group])
 groups = np.array(groups)
 
-#c1_cv_acc, c1_cv_std = pe.mfold_cross_validation(groups,tr,"case2",params=[prior_arr])
-#print(c1_cv_acc)
+print("M-Fold Raw")
+# acc,std  = pe.mfold_cross_validation(groups,tr,"case1",params=[prior_arr])
+# util.writeToFile('data/case1_mfold_raw.txt',acc,3)
+# print("Case 1",acc)
+# acc,std  = pe.mfold_cross_validation(groups,tr,"case2",params=[prior_arr])
+# util.writeToFile('data/case2_mfold_raw.txt',acc,3)
+# print("Case 2",acc)
+# acc,std  = pe.mfold_cross_validation(groups,tr,"case3",params=[prior_arr])
+# util.writeToFile('data/case3_mfold_raw.txt',acc,3)
+# print("Case 3",acc)
+# acc,std  = pe.mfold_cross_validation(groups,tr,"knn",params=[5,0,0,2])
+# util.writeToFile('data/knn_mfold_raw_k'+str(k)+'_p'+str(p)+'.txt',acc,3)
+# print("KNN",acc)
 
+
+
+print("M-Fold PCA")
+# acc,std  = pe.mfold_cross_validation(groups,ptr,"case1",params=[prior_arr])
+# util.writeToFile('data/case1_mfold_pca.txt',acc,3)
+# print("Case 1",acc)
+# acc,std  = pe.mfold_cross_validation(groups,ptr,"case2",params=[prior_arr])
+# util.writeToFile('data/case2_mfold_pca.txt',acc,3)
+# print("Case 2",acc)
+# acc,std  = pe.mfold_cross_validation(groups,ptr,"case3",params=[prior_arr])
+# util.writeToFile('data/case3_mfold_pca.txt',acc,3)
+# print("Case 3",acc)
+# acc,std  = pe.mfold_cross_validation(groups,ptr,"knn",params=[5,0,0,2])
+# util.writeToFile('data/knn_mfold_pca_k'+str(k)+'_p'+str(p)+'.txt',acc,3)
+# print("KNN",acc)
+
+# print("M-Fold FLD")
+# acc,std  = pe.mfold_cross_validation(groups,ftr,"case1",params=[prior_arr])
+# util.writeToFile('data/case1_mfold_fld.txt',acc,3)
+# print("Case 1",acc)
+# acc,std  = pe.mfold_cross_validation(groups,ftr,"case2",params=[prior_arr])
+# util.writeToFile('data/case2_mfold_fld.txt',acc,3)
+# print("Case 2",acc)
+# acc,std  = pe.mfold_cross_validation(groups,ftr,"case3",params=[prior_arr])
+# util.writeToFile('data/case3_mfold_fld.txt',acc,3)
+# print("Case 3",acc)
+# acc,std  = pe.mfold_cross_validation(groups,ftr,"knn",params=[5,0,0,2])
+# util.writeToFile('data/knn_mfold_fld_k'+str(k)+'_p'+str(p)+'.txt',acc,3)
+# print("KNN",acc)
 
 
 ############################# CLASSIFIER FUSION ##############################################
 
+# fusion-1: KNN (PCA), BPNN (8 Hidden Nodes, Raw), CNN
+# fusion-2: Case 2 (PCA), KNN (k=5), Decision Trees (Raw)
+
+
+# fusion-1
 cm_array = []
 predicted_array = []
-cm_array.append(np.loadtxt('data/case1_cm_fld.txt',dtype=int))
-cm_array.append(np.loadtxt('data/case2_cm_fld.txt',dtype=int))
-cm_array.append(np.loadtxt('data/case3_cm_fld.txt',dtype=int))
-cm_array.append(np.loadtxt('data/knn_cm_fld_k'+str(k)+'_p'+str(p)+'.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/case1_predicted_fld.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/case2_predicted_fld.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/case3_predicted_fld.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/knn_predicted_fld_k'+str(k)+'_p'+str(p)+'.txt',dtype=int))
-pe.fusion(tr, te, cm_array, predicted_array)
+cm_array.append(np.loadtxt('data/knn_cm_pca_k'+str(k)+'_p'+str(p)+'.txt',dtype=int))
+cm_array.append(np.loadtxt('data/k3NN_h8_cm_raw.txt',dtype=int))
+cm_array.append(np.loadtxt('data/CNN_cm_raw.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/knn_predicted_pca_k'+str(k)+'_p'+str(p)+'.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/k3NN_h8_predicted_raw.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/CNN_predicted_raw.txt',dtype=int))
+acc, cm = pe.fusion(tr, te, cm_array, predicted_array)
+
+util.writeToFile('data/fusion_acc_1.txt',acc,3)
+np.savetxt('data/fusion_cm_1.txt',cm,fmt='%d')
+
+# fusion-2
+cm_array = []
+predicted_array = []
+cm_array.append(np.loadtxt('data/case2_cm_pca.txt',dtype=int))
+cm_array.append(np.loadtxt('data/knn_cm_pca_k5_p2.txt',dtype=int))
+cm_array.append(np.loadtxt('data/DTree_cm_raw.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/case2_predicted_pca.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/knn_predicted_pca_k5_p2.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/DTree_predicted_raw.txt',dtype=int))
+acc, cm = pe.fusion(tr, te, cm_array, predicted_array)
+
+util.writeToFile('data/fusion_acc_2.txt',acc,3)
+np.savetxt('data/fusion_cm_2.txt',cm,fmt='%d')
+

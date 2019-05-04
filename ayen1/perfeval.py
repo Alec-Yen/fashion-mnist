@@ -25,7 +25,7 @@ Args:   groups: indexes of groups
             nn - 3-Layer Neural Network
         params - vary with classifier
             case123 - [prior_arr]
-            knn - [k, prior_prob, flag]
+            knn - [k, prior_prob, flag, distance_flag]
             dt - none
             nn - [num_classes, hidden_layer_units]
         cm - do you want to return matrix of accuracy
@@ -49,14 +49,14 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
 
 
         if classifier_name == "case1":
-            acc,cm = cls.discriminant_accuracy(tr,te,params[0],1)
+            acc,cm,predicted = cls.discriminant_accuracy(tr,te,params[0],1)
         elif classifier_name == "case2":
-            acc,cm = cls.discriminant_accuracy(tr,te,params[0],2)
+            acc,cm,predicted = cls.discriminant_accuracy(tr,te,params[0],2)
         elif classifier_name == "case3":
-            acc,cm = cls.discriminant_accuracy(tr,te,params[0],3)
+            acc,cm,predicted = cls.discriminant_accuracy(tr,te,params[0],3)
 
         elif classifier_name == "knn":
-            acc,cm = cls.knn_accuracy(tr,te,params[0],params[1],params[2])
+            acc,cm,predicted = cls.knn_accuracy(tr,te,params[0],params[1],params[2],params[3]) # default to euclidean dist
 
         elif classifier_name == "dt":
             clf = DecisionTreeClassifier().fit(tr[:,:-1],tr[:,-1])
@@ -113,15 +113,19 @@ def fusion (tr, te, cm_array, predicted_array):
     num_classifiers = len(cm_array)
     dims = int(np.max(tr[:,-1])+1)
     indexes = list(itertools.product(range(dims),repeat=num_classifiers))
+    confusion_matrix = np.zeros((dims,dims))
 
     for test_index, test_sample in enumerate(te):
+        print("Sample",test_index)
         votes = np.zeros(num_classifiers)
         for i, predicted in enumerate(predicted_array):
             votes[i] = predicted_array[i][test_index]
         column_index = indexes.index(tuple(votes))
         final_vote = np.argmax(lookup_table[:,column_index])
+
+        confusion_matrix[int(test_sample[-1]),final_vote] += 1
         if final_vote == test_sample[-1]:
             correct += 1
 
-    print(correct)
+    return correct/te.shape[0], confusion_matrix
 

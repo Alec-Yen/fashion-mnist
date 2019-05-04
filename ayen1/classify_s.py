@@ -224,7 +224,8 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, distance_flag, verbose=
         if verbose == 1:
             print("Sample",i)
         test_sample = test_sample.reshape(1,-1) # reshape as 1-row
-        dist_arr = distance.cdist(test_sample[:,:-1],tr[:,:-1],'minkowski',p=distance_flag) # find distance
+        dist_arr = distance.cdist(test_sample[:,:-1],tr[:,:-1]) # find distance
+        #dist_arr = distance.cdist(test_sample[:,:-1],tr[:,:-1],'minkowski',p=distance_flag) # find distance
         indices = np.argsort(dist_arr)[0,0:target_k] # get k indices with largest values
         neighbors = tr[indices]
         labels = neighbors[:,-1]
