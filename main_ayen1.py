@@ -1,5 +1,4 @@
 import numpy as np
-from multiprocessing.pool import ThreadPool
 import matplotlib.pyplot as plt
 
 """
@@ -36,24 +35,6 @@ def case_tests (tr,te):
 
 
 
-def knn_threads (tr, te, k, num, p):
-    pool = ThreadPool(processes=num)
-    res = list()
-    per_thread = round(te.shape[0]/num)
-    for i in range(num):
-        res.append(pool.apply_async(cls.knn_accuracy, (tr,te[i*per_thread:(i+1)*per_thread],k,0,0,p,)))
-    acc = np.zeros(num)
-    cm = []
-    predicted = []
-    for i in range(num):
-        acc[i],cm_tmp,predicted_tmp = res[i].get()
-        cm.append(cm_tmp)
-        predicted = np.hstack((predicted,predicted_tmp))
-
-    print(acc)
-    print(np.average(acc))
-    print(np.sum(cm,axis=0))
-    return np.average(acc), np.sum(cm,axis=0), predicted
 
 
 ##############LOAD DATA#################################
@@ -80,10 +61,10 @@ ftr, fte = pp.fld(tr,te)
 ############################ CLASSIFIER TESTING ############################################
 
 k = 5 # for KNN
-p = 2 # the order of the Minkowskit distance
-num_threads = 2
-#k_arr = [5]
-k_arr = [10, 20, 50, 100, 250]
+p = 3 # the order of the Minkowskit distance
+num_threads = 10
+k_arr = [5] # the next one
+#k_arr = [10, 20, 50, 100, 250]
 
 print("Raw")
 # case1acc, case1cm, case1predicted, case2acc, case2cm, case2predicted, case3acc, case3cm, case3predicted = case_tests(tr,te)
@@ -97,7 +78,7 @@ print("Raw")
 # np.savetxt('data/case2_predicted_raw.txt',case2predicted,fmt='%d')
 # np.savetxt('data/case3_predicted_raw.txt',case3predicted,fmt='%d')
 
-# knn_acc, knn_cm, knn_predicted = knn_threads(tr,te,k,num_threads,p)
+# knn_acc, knn_cm, knn_predicted = cls.knn_threads(tr,te,k,num_threads,p)
 # util.writeToFile('data/knn_acc_raw_k'+str(k)+'_p'+str(p)+'.txt',knn_acc,4)
 # np.savetxt('data/knn_cm_raw_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
 # np.savetxt('data/knn_predicted_raw_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
@@ -114,7 +95,7 @@ print("PCA")
 # np.savetxt('data/case2_predicted_pca.txt',case2predicted,fmt='%d')
 # np.savetxt('data/case3_predicted_pca.txt',case3predicted,fmt='%d')
 
-# knn_acc, knn_cm, knn_predicted = knn_threads(ptr,pte,k,num_threads,p)
+# knn_acc, knn_cm, knn_predicted = cls.knn_threads(ptr,pte,k,num_threads,p)
 # util.writeToFile('data/knn_acc_pca_k'+str(k)+'_p'+str(p)+'.txt',knn_acc,4)
 # np.savetxt('data/knn_cm_pca_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
 # np.savetxt('data/knn_predicted_pca_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
@@ -132,7 +113,7 @@ print("FLD")
 # np.savetxt('data/case3_predicted_fld.txt',case3predicted,fmt='%d')
 #
 
-# knn_acc, knn_cm, knn_predicted = knn_threads(ftr,fte,k,num_threads,p)
+# knn_acc, knn_cm, knn_predicted = cls.knn_threads(ftr,fte,k,num_threads,p)
 # util.writeToFile('data/knn_acc_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_acc,4)
 # np.savetxt('data/knn_cm_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_cm,fmt='%d')
 # np.savetxt('data/knn_predicted_fld_k'+str(k)+'_p'+str(p)+'.txt',knn_predicted,fmt='%d')
@@ -145,7 +126,7 @@ print("FLD")
 # knn_acc_arr = np.zeros(len(k_arr))
 # print("KNN Raw")
 # for i,k_tmp in enumerate(k_arr):
-#     knn_acc_arr[i] = knn_threads(tr, te, k_tmp, num_threads,2)[0]
+#     knn_acc_arr[i] = cls.knn_threads(tr, te, k_tmp, num_threads,2)[0]
 #     util.writeToFile('data/knn_acc_raw_k'+str(k_tmp)+'_p'+str(p)+'.txt',knn_acc_arr[i],4)
 # print(knn_acc_arr)
 # plt.scatter(k_arr, knn_acc_arr)
@@ -157,7 +138,7 @@ print("FLD")
 # knn_acc_arr = np.zeros(len(k_arr))
 # print("KNN PCA")
 # for i,k_tmp in enumerate(k_arr):
-#     knn_acc_arr[i] = knn_threads(ptr, pte, k_tmp, num_threads,2)[0]
+#     knn_acc_arr[i] = cls.knn_threads(ptr, pte, k_tmp, num_threads,2)[0]
 #     util.writeToFile('data/knn_acc_pca_k'+str(k_tmp)+'_p'+str(p)+'.txt',knn_acc_arr[i],4)
 # print(knn_acc_arr)
 # plt.scatter(k_arr, knn_acc_arr)
@@ -169,7 +150,7 @@ print("FLD")
 # knn_acc_arr = np.zeros(len(k_arr))
 # print("KNN FLD")
 # for i,k_tmp in enumerate(k_arr):
-#     knn_acc_arr[i] = knn_threads(ftr, fte, k_tmp, num_threads,2)[0]
+#     knn_acc_arr[i] = cls.knn_threads(ftr, fte, k_tmp, num_threads,2)[0]
 #     util.writeToFile('data/knn_acc_fld_k'+str(k_tmp)+'_p'+str(p)+'.txt',knn_acc_arr[i],4)
 # print(knn_acc_arr)
 # plt.scatter(k_arr, knn_acc_arr)
@@ -205,7 +186,7 @@ print("M-Fold Raw")
 
 # knn_acc_arr = np.zeros(len(k_arr))
 # for i,k_tmp in enumerate(k_arr):
-#     knn_acc_arr[i],std  = pe.mfold_cross_validation(groups,tr,"knn",params=[k_tmp,0,0,2])
+#     knn_acc_arr[i],std  = pe.mfold_cross_validation(groups,tr,"knn_thread",params=[k_tmp,num_threads,p])
 #     util.writeToFile('data/knn_mfold_raw_k'+str(k_tmp)+'_p'+str(p)+'.txt',knn_acc_arr[i],4)
 # print("KNN",knn_acc_arr)
 
@@ -223,7 +204,7 @@ print("M-Fold PCA")
 
 # knn_acc_arr = np.zeros(len(k_arr))
 # for i,k_tmp in enumerate(k_arr):
-#     knn_acc_arr[i],std  = pe.mfold_cross_validation(groups,ptr,"knn",params=[k_tmp,0,0,2])
+#     knn_acc_arr[i],std  = pe.mfold_cross_validation(groups,ptr,"knn",params=[k_tmp,0,0,p])
 #     util.writeToFile('data/knn_mfold_pca_k'+str(k_tmp)+'_p'+str(p)+'.txt',knn_acc_arr[i],4)
 # print("KNN",knn_acc_arr)
 
@@ -245,7 +226,7 @@ print("M-Fold FLD")
 
 # knn_acc_arr = np.zeros(len(k_arr))
 # for i,k_tmp in enumerate(k_arr):
-#     knn_acc_arr[i],std  = pe.mfold_cross_validation(groups,ftr,"knn",params=[k_tmp,0,0,2])
+#     knn_acc_arr[i],std  = pe.mfold_cross_validation(groups,ftr,"knn",params=[k_tmp,0,0,p])
 #     util.writeToFile('data/knn_mfold_fld_k'+str(k_tmp)+'_p'+str(p)+'.txt',knn_acc_arr[i],4)
 # print("KNN",knn_acc_arr)
 
@@ -304,19 +285,19 @@ dictionary = {
     9: "Ankle Boot"
 }
 
-predicted = np.loadtxt('data/fusion_predicted_1.txt',dtype=int)
-max_to_show = 10
-count = 0
-for i,sample in enumerate(predicted):
-    if sample != te[i,-1]:
-        img = X_test[i].reshape((28,28))
-        plt.imshow(img,cmap='gray')
-        plt.title("Predicted Label: "+dictionary[sample]+"; True Label: "+dictionary[te[i,-1]])
-        plt.savefig("figures/misclassified/im"+str(count)+".png")
-        plt.show()
-        count += 1
-        if count == max_to_show:
-            break
+# predicted = np.loadtxt('data/fusion_predicted_1.txt',dtype=int)
+# max_to_show = 10
+# count = 0
+# for i,sample in enumerate(predicted):
+#     if sample != te[i,-1]:
+#         img = X_test[i].reshape((28,28))
+#         plt.imshow(img,cmap='gray')
+#         plt.title("Predicted Label: "+dictionary[sample]+"; True Label: "+dictionary[te[i,-1]])
+#         plt.savefig("figures/misclassified/im"+str(count)+".png")
+#         plt.show()
+#         count += 1
+#         if count == max_to_show:
+#             break
 
 
 

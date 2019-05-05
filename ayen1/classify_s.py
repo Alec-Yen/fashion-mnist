@@ -4,6 +4,7 @@ from scipy.stats import mode
 from scipy.spatial import distance
 import operator
 import ayen1.preprocessing as pp
+from multiprocessing.pool import ThreadPool
 
 import keras.losses
 from keras.models import Sequential
@@ -118,72 +119,6 @@ def discriminant_accuracy(tr, te, prior, case,verbose=0):
     else:
         return (TN+TP)/te.shape[0], TP/(TP+FN), TN/(TN+FP), TP, TN, FP, FN
 
-"""
-Purpose:
-    Discriminant classifier, supervised learning
-    Calculate accuracy, sensitivity, specificity for different prior probabilities
-    Assumes Gaussian distribution
-Args:
-    tr: training set, including class label
-    te: testing set, including class label
-    prior_range: array of a range of prior probabilities, only defined for one class (other is the complement)
-Returns:
-    accuracy array, sensitivity array, specificity array
-"""
-def disc_acc_per_prior (tr, te, prior_range):
-    print("Calculating discriminant accuracy per prior...")
-    acc_vec = np.zeros((3, prior_range.shape[0]))  # accuracies for different P1
-    spec_vec = np.zeros((3, prior_range.shape[0]))  # accuracies for different P1
-    sens_vec = np.zeros((3, prior_range.shape[0]))  # accuracies for different P1
-    for index, P_it in enumerate(prior_range):
-        P_tmp = np.array((P_it, 1 - P_it))
-        acc_vec[0,index], sens_vec[0, index], spec_vec[0,index] = discriminant_accuracy(tr, te, P_tmp, 1)[0:3]
-        acc_vec[1,index], sens_vec[1, index], spec_vec[1,index] = discriminant_accuracy(tr, te, P_tmp, 2)[0:3]
-        acc_vec[2,index], sens_vec[2, index], spec_vec[2,index] = discriminant_accuracy(tr, te, P_tmp, 3)[0:3]
-    case1_acc = acc_vec[0]
-    case2_acc = acc_vec[1]
-    case3_acc = acc_vec[2]
-    case1_sens = sens_vec[0]
-    case2_sens = sens_vec[1]
-    case3_sens = sens_vec[2]
-    case1_spec = spec_vec[0]
-    case2_spec = spec_vec[1]
-    case3_spec = spec_vec[2]
-    return case1_acc,case1_sens,case1_spec,case2_acc,case2_sens,case2_spec,case3_acc,case3_sens,case3_spec
-
-"""
-Purpose:
-    Discriminant classifier, supervised learning
-    Calculate TPR, FPR for ROC curve
-    Assumes Gaussian distribution
-Args:
-    tr: training set
-    te: testing set
-    prior_range: array of a range of prior probabilities, only defined for one class (other is the complement)
-Returns:
-    true positive rate, false positive rate
-"""
-def disc_roc (tr, te, prior_range):
-    print("Calculating discriminant ROC...")
-    case1_tpr = np.zeros(prior_range.shape[0])
-    case1_fpr = np.zeros(prior_range.shape[0])
-    case2_tpr = np.zeros(prior_range.shape[0])
-    case2_fpr = np.zeros(prior_range.shape[0])
-    case3_tpr = np.zeros(prior_range.shape[0])
-    case3_fpr = np.zeros(prior_range.shape[0])
-    for index, prior_it in enumerate(prior_range):
-        prior = np.array((prior_it, 1 - prior_it))
-        TP,TN,FP,FN  = discriminant_accuracy(tr, te, prior, 1)[3:7]
-        case1_tpr[index] = TP/(TP+FN)
-        case1_fpr[index] = 1-TN/(TN+FP)
-        TP,TN,FP,FN  = discriminant_accuracy(tr, te, prior, 2)[3:7]
-        case2_tpr[index] = TP/(TP+FN)
-        case2_fpr[index] = 1-TN/(TN+FP)
-        TP,TN,FP,FN  = discriminant_accuracy(tr, te, prior, 3)[3:7]
-        case3_tpr[index] = TP/(TP+FN)
-        case3_fpr[index] = 1-TN/(TN+FP)
-    return case1_tpr,case1_fpr,case2_tpr,case2_fpr,case3_tpr,case3_fpr
-
 
 
 """
@@ -266,6 +201,138 @@ def knn_accuracy (tr, te, target_k, desired_prior, flag, distance_flag, verbose=
     else:
         return (TN+TP)/te.shape[0], TP/(TP+FN), TN/(TN+FP), TP, TN, FP, FN, execution_time
 
+
+"""
+Purpose:
+    Threading for KNN
+Args:
+    tr: training set
+    te: testing set
+    prior_range: range of prior probabilities to test (only defined for one class, other is complement)
+    target_k: fixed k value to test
+Returns:
+    true positive rate, false positive rate
+"""
+def knn_threads (tr, te, k, num, p):
+    pool = ThreadPool(processes=num)
+    res = list()
+    per_thread = round(te.shape[0]/num)
+    for i in range(num):
+        res.append(pool.apply_async(knn_accuracy, (tr,te[i*per_thread:(i+1)*per_thread],k,0,0,p,)))
+    acc = np.zeros(num)
+    cm = []
+    predicted = []
+    for i in range(num):
+        acc[i],cm_tmp,predicted_tmp = res[i].get()
+        cm.append(cm_tmp)
+        predicted = np.hstack((predicted,predicted_tmp))
+
+    print(acc)
+    print(np.average(acc))
+    print(np.sum(cm,axis=0))
+    return np.average(acc), np.sum(cm,axis=0), predicted
+
+"""
+Purpose:
+    3-Layer neural network for classification
+Args:
+    tr: training set
+    te: testing set
+    validation_prop: what percantage is used for validation
+    n: hidden layer nodes
+    num_classes: number of classes for one hot encoding
+"""
+
+def nn_3layer (tr, te, n, outputs,validation_prop):
+    np.random.seed(0)
+    x_train = tr[:,:-1]
+    y_train = keras.utils.to_categorical(tr[:,-1], num_classes=outputs) # one hot
+    x_test = te[:,:-1]
+    y_test = keras.utils.to_categorical(te[:,-1], num_classes=outputs)
+
+
+    model = Sequential()
+    model.add(Dense(units=n, activation='relu', input_dim=tr.shape[1] - 1))
+    model.add(Dense(units=outputs, activation='softmax'))
+    model.compile(loss='categorical_crossentropy',
+                  optimizer='sgd',
+                  metrics=['accuracy'])
+    history = model.fit(x_train, y_train, epochs=100, batch_size=32,verbose=False,validation_split=validation_prop)
+    loss_and_metrics = model.evaluate(x_test,y_test,batch_size=128,verbose=False)
+
+    return loss_and_metrics[1], history # returns the accuracy
+
+
+
+
+######################### PERFORMANCE EVALUATION ######################################################
+
+"""
+Purpose:
+    Discriminant classifier, supervised learning
+    Calculate accuracy, sensitivity, specificity for different prior probabilities
+    Assumes Gaussian distribution
+Args:
+    tr: training set, including class label
+    te: testing set, including class label
+    prior_range: array of a range of prior probabilities, only defined for one class (other is the complement)
+Returns:
+    accuracy array, sensitivity array, specificity array
+"""
+def disc_acc_per_prior (tr, te, prior_range):
+    print("Calculating discriminant accuracy per prior...")
+    acc_vec = np.zeros((3, prior_range.shape[0]))  # accuracies for different P1
+    spec_vec = np.zeros((3, prior_range.shape[0]))  # accuracies for different P1
+    sens_vec = np.zeros((3, prior_range.shape[0]))  # accuracies for different P1
+    for index, P_it in enumerate(prior_range):
+        P_tmp = np.array((P_it, 1 - P_it))
+        acc_vec[0,index], sens_vec[0, index], spec_vec[0,index] = discriminant_accuracy(tr, te, P_tmp, 1)[0:3]
+        acc_vec[1,index], sens_vec[1, index], spec_vec[1,index] = discriminant_accuracy(tr, te, P_tmp, 2)[0:3]
+        acc_vec[2,index], sens_vec[2, index], spec_vec[2,index] = discriminant_accuracy(tr, te, P_tmp, 3)[0:3]
+    case1_acc = acc_vec[0]
+    case2_acc = acc_vec[1]
+    case3_acc = acc_vec[2]
+    case1_sens = sens_vec[0]
+    case2_sens = sens_vec[1]
+    case3_sens = sens_vec[2]
+    case1_spec = spec_vec[0]
+    case2_spec = spec_vec[1]
+    case3_spec = spec_vec[2]
+    return case1_acc,case1_sens,case1_spec,case2_acc,case2_sens,case2_spec,case3_acc,case3_sens,case3_spec
+
+"""
+Purpose:
+    Discriminant classifier, supervised learning
+    Calculate TPR, FPR for ROC curve
+    Assumes Gaussian distribution
+Args:
+    tr: training set
+    te: testing set
+    prior_range: array of a range of prior probabilities, only defined for one class (other is the complement)
+Returns:
+    true positive rate, false positive rate
+"""
+def disc_roc (tr, te, prior_range):
+    print("Calculating discriminant ROC...")
+    case1_tpr = np.zeros(prior_range.shape[0])
+    case1_fpr = np.zeros(prior_range.shape[0])
+    case2_tpr = np.zeros(prior_range.shape[0])
+    case2_fpr = np.zeros(prior_range.shape[0])
+    case3_tpr = np.zeros(prior_range.shape[0])
+    case3_fpr = np.zeros(prior_range.shape[0])
+    for index, prior_it in enumerate(prior_range):
+        prior = np.array((prior_it, 1 - prior_it))
+        TP,TN,FP,FN  = discriminant_accuracy(tr, te, prior, 1)[3:7]
+        case1_tpr[index] = TP/(TP+FN)
+        case1_fpr[index] = 1-TN/(TN+FP)
+        TP,TN,FP,FN  = discriminant_accuracy(tr, te, prior, 2)[3:7]
+        case2_tpr[index] = TP/(TP+FN)
+        case2_fpr[index] = 1-TN/(TN+FP)
+        TP,TN,FP,FN  = discriminant_accuracy(tr, te, prior, 3)[3:7]
+        case3_tpr[index] = TP/(TP+FN)
+        case3_fpr[index] = 1-TN/(TN+FP)
+    return case1_tpr,case1_fpr,case2_tpr,case2_fpr,case3_tpr,case3_fpr
+
 """
 Purpose:
     KNN classifier, non-parametric learning
@@ -333,37 +400,5 @@ def knn_roc (tr, te, prior_range, target_k):
         tpr_vec[index] = TP/(TP+FN)
         tnr_vec[index] = TN/(TN+FP)
     return tpr_vec,1-tnr_vec
-
-
-"""
-Purpose:
-    3-Layer neural network for classification
-Args:
-    tr: training set
-    te: testing set
-    validation_prop: what percantage is used for validation
-    n: hidden layer nodes
-    num_classes: number of classes for one hot encoding
-"""
-
-def nn_3layer (tr, te, n, outputs,validation_prop):
-    np.random.seed(0)
-    x_train = tr[:,:-1]
-    y_train = keras.utils.to_categorical(tr[:,-1], num_classes=outputs) # one hot
-    x_test = te[:,:-1]
-    y_test = keras.utils.to_categorical(te[:,-1], num_classes=outputs)
-
-
-    model = Sequential()
-    model.add(Dense(units=n, activation='relu', input_dim=tr.shape[1] - 1))
-    model.add(Dense(units=outputs, activation='softmax'))
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='sgd',
-                  metrics=['accuracy'])
-    history = model.fit(x_train, y_train, epochs=100, batch_size=32,verbose=False,validation_split=validation_prop)
-    loss_and_metrics = model.evaluate(x_test,y_test,batch_size=128,verbose=False)
-
-    return loss_and_metrics[1], history # returns the accuracy
-
 
 

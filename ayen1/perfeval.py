@@ -26,6 +26,7 @@ Args:   groups: indexes of groups
         params - vary with classifier
             case123 - [prior_arr]
             knn - [k, prior_prob, flag, distance_flag]
+            knn_thread - [k, num_thread, distance_flag]
             dt - none
             nn - [num_classes, hidden_layer_units]
         cm - do you want to return matrix of accuracy
@@ -57,6 +58,8 @@ def mfold_cross_validation (group_indices, data, classifier_name,params=[],verbo
 
         elif classifier_name == "knn":
             acc,cm,predicted = cls.knn_accuracy(tr,te,params[0],params[1],params[2],params[3]) # default to euclidean dist
+        elif classifier_name == "knn_thread":
+            acc,cm,predicted = cls.knn_threads(tr,te,params[0],params[1],params[2]) # default to euclidean dist
 
         elif classifier_name == "dt":
             clf = DecisionTreeClassifier().fit(tr[:,:-1],tr[:,-1])
