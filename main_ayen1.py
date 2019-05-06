@@ -15,6 +15,7 @@ Description
 import ayen1.perfeval as pe
 import ayen1.util as util
 import ayen1.classify_s as cls
+import ayen1.classify_us as clu
 import ayen1.preprocessing as pp
 
 NUM_CLASSES = 10
@@ -300,6 +301,23 @@ dictionary = {
 #             break
 
 
+epsilon = 0.01
+test = fte.copy()
+cluster_dict = {}
+labels = clu.k_means(test,NUM_CLASSES,verbose=True,seed=0)[0]
+#labels = clu.winner_takes_all(test,NUM_CLASSES,epsilon,verbose=True,seed=0)[0]
+clusters = []
+for i in range(NUM_CLASSES):
+    clusters.append(np.where(labels==i)[0])
 
+for i,c in enumerate(clusters):
+    counts = np.bincount(test[c,-1].astype(int))
+    cluster_dict[i] = np.argmax(counts)
 
+print(cluster_dict)
 
+correct = 0
+for i,test_sample in enumerate(test):
+    if cluster_dict[labels[i]] == test_sample[-1]:
+        correct += 1
+print(correct/test.shape[0])

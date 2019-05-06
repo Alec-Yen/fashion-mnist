@@ -131,11 +131,12 @@ def k_means (test_data, k, verbose=False, seed=-1):
             print("Epoch: ",it," Label Change: ",labels_difference)
         it += 1
 
-    # once the labels don't change anymore, each feature become their centroids
-    for i,x in enumerate(test_data):
-        ret[i] = centroids[labels[i].astype(int)]
+    # # once the labels don't change anymore, each feature become their centroids
+    # for i,x in enumerate(test_data):
+    #     ret[i] = centroids[labels[i].astype(int)]
 
-    return ret, time.time()-start_time, it
+
+    return labels, time.time()-start_time, it
 
 
 """
@@ -179,12 +180,12 @@ def winner_takes_all (test_data, k, epsilon, verbose=False, seed=-1):
             print("Epoch: ",it," Label Change: ",labels_difference)
         it += 1
 
-    # each feature become their centroids
-    for i,x in enumerate(test_data):
-        distances = util.dist(x,centroids)
-        ret[i] = centroids[np.argmin(distances)]
+    # # each feature become their centroids
+    # for i,x in enumerate(test_data):
+    #     distances = util.dist(x,centroids)
+    #     ret[i] = centroids[np.argmin(distances)]
 
-    return ret, time.time()-start_time, it
+    return labels, time.time()-start_time, it
 
 """
 Purpose: Runs the Kohonen maps algorithm on a set of test data given k clusters and returns the clustered data
