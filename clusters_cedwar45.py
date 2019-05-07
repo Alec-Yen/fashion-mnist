@@ -82,10 +82,10 @@ km_X, km_winners, km_MD = kMeans(pX_train, k=c, seed=123);
 
 fig = plt.figure()
 if not threeD:
-    plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = y_train);
+    plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = km_winners);
 else:
     ax = Axes3D(fig)
-    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = y_train);
+    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = km_winners);
     ax.view_init(68, 8)
 plt.title("k-means Clusters from PCA")
 #plt.show()
@@ -96,10 +96,10 @@ km_X, km_winners, km_MD = kMeans(X_train, k=c, seed=123);
 
 fig = plt.figure()
 if not threeD:
-    plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = y_train);
+    plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = km_winners);
 else:
     ax = Axes3D(fig)
-    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = y_train);
+    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = km_winners);
     ax.view_init(68, 8)
 plt.title("k-means Clusters from normalized")
 #plt.show()
@@ -113,7 +113,7 @@ if not threeD:
     plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = WTA_winners);
 else:
     ax = Axes3D(fig)
-    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = y_train);
+    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = WTA_winners);
     ax.view_init(68, 8)
 plt.title("WTA Clusters from PCA")
 #plt.show()
@@ -127,7 +127,7 @@ if not threeD:
     plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = WTA_winners);
 else:
     ax = Axes3D(fig)
-    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = y_train);
+    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = WTA_winners);
     ax.view_init(68, 8)
 plt.title("WTA Clusters from normalized")
 plt.show()
