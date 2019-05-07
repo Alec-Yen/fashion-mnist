@@ -13,6 +13,7 @@ from keras.datasets import mnist
 #from keras.layers import Dense
 
 
+
 np.random.seed(321);
 
 
@@ -60,7 +61,9 @@ if not threeD:
 else:
     pX_train, pX_test = PCA_k(X_train, X_test, 3);
     from mpl_toolkits.mplot3d import Axes3D
-    
+
+
+
     
 #idx=random.sample(range(n),1000)
 
@@ -131,9 +134,19 @@ plt.show()
 
 
 
+#Test with k-means on FLD
+pred = np.loadtxt("data/kmeans_predicted_fld.txt", dtype=int)
 
 
-
+fig = plt.figure()
+if not threeD:
+    plt.scatter(pX_train[:,0], pX_train[:,1], s = .25, c = pred);
+else:
+    ax = Axes3D(fig)
+    ax.scatter(pX_train[:,0], pX_train[:,1], pX_train[:,2], s = .25, c = pred);
+    ax.view_init(68, 8)
+plt.title("k-means Clusters from FLD")
+plt.show()
 
 
 
