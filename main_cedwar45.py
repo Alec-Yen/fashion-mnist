@@ -44,12 +44,14 @@ print(X_test.shape[0], 'test samples')
 n = X_train.shape[0];
 d = X_train.shape[1];
 
-pX_train, pX_test = PCA(X_train, X_test, .1);
-print("PCA Done")
-fX_train, fX_test = fld(np.hstack((X_train, y_train.reshape(len(y_train), 1))), np.hstack((X_test, y_test.reshape(len(y_test), 1))));
-fX_train = fX_train[:,0:9];
-fX_test = fX_test[:,0:9];
-print("FLD Done")
+#Dimensionality Reduction
+if False: 
+    pX_train, pX_test = PCA(X_train, X_test, .1);
+    print("PCA Done")
+    fX_train, fX_test = fld(np.hstack((X_train, y_train.reshape(len(y_train), 1))), np.hstack((X_test, y_test.reshape(len(y_test), 1))));
+    fX_train = fX_train[:,0:9];
+    fX_test = fX_test[:,0:9];
+    print("FLD Done")
 
 groups = [];
 m = 10;
@@ -154,7 +156,7 @@ if False: #Skip MLP sklearn
 np.random.seed(321)
 
 #3 layer NN from Keras 
-if True: #Skip MLP sklearn
+if False: #Skip MLP sklearn
     accs = np.array([]);
     stds = np.array([]);
     for h in [5,10,15]:#range(2,15+1):
@@ -202,16 +204,16 @@ if True: #Skip MLP sklearn
             
             return predicted;
             
-        '''
+        
         acc, std = mfold(X_grp, X_classes_grp, nn_3layer);
         
         accs = np.append(accs, acc);
         stds = np.append(stds, std);
         
         print("sklearn Multilayer Perceptron 10-fold: ", h," \t", acc)
+        
+        
         '''
-        
-        
         #Test version
         predicted = nn_3layer(X_train, X_test, y_train)
         CM = ConfusionMatrix(predicted, y_test, c);
@@ -235,7 +237,7 @@ if True: #Skip MLP sklearn
         np.savetxt("data/k3NN_h"+str(h)+"_cm_fld.txt", CM, "%d");
         acc = accuracy(predicted, y_test)
         print("FLD keras 3-layer NN test: ", h," \t", acc)
-        
+        '''
         
         
         
@@ -244,3 +246,31 @@ if True: #Skip MLP sklearn
     #plt.xlabel('Hidden Nodes')
     #plt.ylabel('Accuracy')
     #plt.show()
+    
+    
+    
+
+dictionary = {
+    0: "T-shirt",
+    1: "Trouser",
+    2: "Pullover",
+    3: "Dress",
+    4: "Coat",
+    5: "Sandal",
+    6: "Shirt",
+    7: "Sneaker",
+    8: "Bag",
+    9: "Ankle Boot"
+}
+
+
+
+classes=list(dictionary.values())
+
+from cedwar45.ConfusionMatrix import plot_confusion_matrix
+
+pred = np.loadtxt("data/knn_predicted_pca_k5_p1.txt", dtype=int)
+plot_confusion_matrix(y_test, pred, np.array(classes))
+plt.title("kNN (k=5, p=1) PCA Confusion Matrix")
+plt.show()
+

@@ -271,6 +271,22 @@ print("M-Fold FLD")
 # np.savetxt('data/fusion_predicted_2.txt',predicted,fmt='%d')
 
 
+# # fusion-3
+cm_array = []
+predicted_array = []
+cm_array.append(np.loadtxt('data/k3NN_h10_cm_pca.txt',dtype=int))
+cm_array.append(np.loadtxt('data/CNN_cm_raw.txt',dtype=int))
+cm_array.append(np.loadtxt('data/case3_cm_fld.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/k3NN_h10_predicted_pca.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/CNN_predicted_raw.txt',dtype=int))
+predicted_array.append(np.loadtxt('data/case3_predicted_fld.txt',dtype=int))
+acc, cm, predicted = pe.fusion(tr, te, cm_array, predicted_array)
+
+util.writeToFile('data/fusion_acc_3.txt',acc,4)
+np.savetxt('data/fusion_cm_3.txt',cm,fmt='%d')
+np.savetxt('data/fusion_predicted_3.txt',predicted,fmt='%d')
+
+
 ############################ MISCLASSIFIED ########################################
 
 dictionary = {

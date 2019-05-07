@@ -38,7 +38,20 @@ print(X_test.shape[0], 'test samples')
 
 n = X_train.shape[0];
 d = X_train.shape[1];
+    
 
+dictionary = {
+    0: "T-shirt",
+    1: "Trouser",
+    2: "Pullover",
+    3: "Dress",
+    4: "Coat",
+    5: "Sandal",
+    6: "Shirt",
+    7: "Sneaker",
+    8: "Bag",
+    9: "Ankle Boot"
+}
 
 pX_train, pX_test = PCA_k(X_train, X_test, 2);
 

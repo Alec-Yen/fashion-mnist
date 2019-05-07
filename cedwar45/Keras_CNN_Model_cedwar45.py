@@ -18,7 +18,7 @@ np.random.seed(123);
 
 batch_size = 128
 num_classes = 10
-epochs = 30
+epochs = 50
 
 
 # input image dimensions
@@ -82,7 +82,7 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               metrics=['accuracy'])
 
               
-model.fit(X_train, y_train,
+history = model.fit(X_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           #verbose=1,
@@ -97,11 +97,21 @@ print('Test accuracy:', score[1])
 predicted = model.predict(X_test,verbose=False)
 predicted = np.argmax(predicted, axis = 1);
 
+from keras.utils import plot_model
+plot_model(model, to_file='CNN.png')
 
-CM = ConfusionMatrix(predicted, y_test_orig, c);
-np.savetxt("data/CNN_predicted_raw.txt", predicted, "%d")
-np.savetxt("data/CNN_cm_raw.txt", CM, "%d");
+#CM = ConfusionMatrix(predicted, y_test_orig, c);
+#np.savetxt("data/CNN_predicted_raw.txt", predicted, "%d")
+#np.savetxt("data/CNN_cm_raw.txt", CM, "%d");
 
+from matplotlib.pyplot import plt
 
+plt.plot(history.history['val_acc'])
+plt.plot(history.history['acc'])
+plt.legend(['Validation Accuracy','Training Accuracy'])
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.title('CNN Convergence Curve')
+plt.show()
 
 
