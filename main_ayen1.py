@@ -272,19 +272,34 @@ print("M-Fold FLD")
 
 
 # # fusion-3
-cm_array = []
-predicted_array = []
-cm_array.append(np.loadtxt('data/k3NN_h10_cm_pca.txt',dtype=int))
-cm_array.append(np.loadtxt('data/CNN_cm_raw.txt',dtype=int))
-cm_array.append(np.loadtxt('data/case3_cm_fld.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/k3NN_h10_predicted_pca.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/CNN_predicted_raw.txt',dtype=int))
-predicted_array.append(np.loadtxt('data/case3_predicted_fld.txt',dtype=int))
-acc, cm, predicted = pe.fusion(tr, te, cm_array, predicted_array)
+# cm_array = []
+# predicted_array = []
+# cm_array.append(np.loadtxt('data/k3NN_h10_cm_pca.txt',dtype=int))
+# cm_array.append(np.loadtxt('data/CNN_cm_raw.txt',dtype=int))
+# cm_array.append(np.loadtxt('data/case3_cm_fld.txt',dtype=int))
+# predicted_array.append(np.loadtxt('data/k3NN_h10_predicted_pca.txt',dtype=int))
+# predicted_array.append(np.loadtxt('data/CNN_predicted_raw.txt',dtype=int))
+# predicted_array.append(np.loadtxt('data/case3_predicted_fld.txt',dtype=int))
+# acc, cm, predicted = pe.fusion(tr, te, cm_array, predicted_array)
+#
+# util.writeToFile('data/fusion_acc_3.txt',acc,4)
+# np.savetxt('data/fusion_cm_3.txt',cm,fmt='%d')
+# np.savetxt('data/fusion_predicted_3.txt',predicted,fmt='%d')
 
-util.writeToFile('data/fusion_acc_3.txt',acc,4)
-np.savetxt('data/fusion_cm_3.txt',cm,fmt='%d')
-np.savetxt('data/fusion_predicted_3.txt',predicted,fmt='%d')
+
+# # fusion-4
+# cm_array = []
+# predicted_array = []
+# cm_array.append(np.loadtxt('data/k3NN_h10_cm_pca.txt',dtype=int))
+# cm_array.append(np.loadtxt('data/KNN_cm_pca_k5_p1.txt',dtype=int))
+# predicted_array.append(np.loadtxt('data/k3NN_h10_predicted_pca.txt',dtype=int))
+# predicted_array.append(np.loadtxt('data/KNN_predicted_pca_k5_p1.txt',dtype=int))
+# acc, cm, predicted = pe.fusion(tr, te, cm_array, predicted_array)
+#
+# print(acc)
+# util.writeToFile('data/fusion_acc_4.txt',acc,4)
+# np.savetxt('data/fusion_cm_4.txt',cm,fmt='%d')
+# np.savetxt('data/fusion_predicted_4.txt',predicted,fmt='%d')
 
 
 ############################ MISCLASSIFIED ########################################
@@ -316,9 +331,9 @@ dictionary = {
 #         if count == max_to_show:
 #             break
 
-
 epsilon = 0.01
-test = fte.copy()
+test = ftr.copy()
+predicted = np.zeros(test.shape[0])
 cluster_dict = {}
 labels = clu.k_means(test,NUM_CLASSES,verbose=True,seed=0)[0]
 #labels = clu.winner_takes_all(test,NUM_CLASSES,epsilon,verbose=True,seed=0)[0]
@@ -334,6 +349,9 @@ print(cluster_dict)
 
 correct = 0
 for i,test_sample in enumerate(test):
+    predicted[i] = cluster_dict[labels[i]]
     if cluster_dict[labels[i]] == test_sample[-1]:
         correct += 1
 print(correct/test.shape[0])
+
+np.savetxt('data/kmeans_predicted_fld.txt',predicted,fmt='%d')
